@@ -1,0 +1,45 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kirish - LearnUz{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-sign-in-alt text-warning"></i> Kirish
+                </h2>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ field.label }}</label>
+                        <input type="{{ field.field.widget.input_type }}"
+                               name="{{ field.html_name }}"
+                               class="form-control {% if field.errors %}is-invalid{% endif %}"
+                               {% if field.value %}value="{{ field.value }}"{% endif %}>
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-warning w-100 btn-lg mt-2">
+                        <i class="fas fa-sign-in-alt"></i> Kirish
+                    </button>
+                </form>
+
+                <hr>
+                <p class="text-center">
+                    Hisobingiz yo'qmi?
+                    <a href="/register/" class="text-warning">Ro'yxatdan o'tish</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

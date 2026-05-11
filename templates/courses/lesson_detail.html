@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ lesson.title }} - LearnUz{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Dars content -->
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+                <li class="breadcrumb-item"><a href="/courses/">Kurslar</a></li>
+                <li class="breadcrumb-item"><a href="/courses/{{ course.pk }}/">{{ course.title }}</a></li>
+                <li class="breadcrumb-item active">{{ lesson.title }}</li>
+            </ol>
+        </nav>
+
+        <h2 class="mb-4">{{ lesson.title }}</h2>
+
+        <!-- Video -->
+        {% if lesson.video_url %}
+        <div class="ratio ratio-16x9 mb-4">
+            <iframe src="{{ lesson.video_url|safe }}" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+
+        <!-- Dars matni -->
+        <div class="card p-4 mb-4">
+            <h4>📝 Dars matni</h4>
+            <p>{{ lesson.content }}</p>
+        </div>
+
+        <!-- Oldingi/Keyingi dars -->
+        <div class="d-flex justify-content-between mt-4">
+            {% for l in lessons %}
+                {% if l.order == lesson.order|add:"-1" %}
+                <a href="/courses/{{ course.pk }}/lessons/{{ l.pk }}/" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Oldingi dars
+                </a>
+                {% endif %}
+                {% if l.order == lesson.order|add:"1" %}
+                <a href="/courses/{{ course.pk }}/lessons/{{ l.pk }}/" class="btn btn-primary ms-auto">
+                    Keyingi dars <i class="fas fa-arrow-right"></i>
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Darslar ro'yxati -->
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Darslar</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for l in lessons %}
+                <a href="/courses/{{ course.pk }}/lessons/{{ l.pk }}/"
+                   class="list-group-item list-group-item-action {% if l.pk == lesson.pk %}active{% endif %}">
+                    <i class="fas fa-play-circle me-2"></i>
+                    {{ forloop.counter }}. {{ l.title }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

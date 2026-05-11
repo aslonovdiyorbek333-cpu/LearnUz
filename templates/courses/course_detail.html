@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ course.title }} - LearnUz{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+                <li class="breadcrumb-item"><a href="/courses/">Kurslar</a></li>
+                <li class="breadcrumb-item active">{{ course.title }}</li>
+            </ol>
+        </nav>
+        <h1 class="mb-3">{{ course.title }}</h1>
+        <span class="badge bg-warning text-dark mb-3">{{ course.category }}</span>
+        {% if course.image %}
+        <img src="{{ course.image.url }}" class="img-fluid rounded mb-4" style="max-height: 400px; width: 100%; object-fit: cover;">
+        {% endif %}
+        <h4>📖 Kurs haqida</h4>
+        <p>{{ course.description }}</p>
+        <h4 class="mt-4">🎬 Darslar</h4>
+        <div class="list-group">
+            {% for lesson in lessons %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-play-circle text-primary me-2"></i>
+                        {% if is_enrolled %}
+                        <a href="/courses/{{ course.pk }}/lessons/{{ lesson.pk }}/" class="text-decoration-none">
+                            <strong>{{ forloop.counter }}. {{ lesson.title }}</strong>
+                        </a>
+                        {% else %}
+                        <strong>{{ forloop.counter }}. {{ lesson.title }}</strong>
+                        {% endif %}
+                    </div>
+                    {% if not is_enrolled %}
+                    <i class="fas fa-lock text-muted"></i>
+                    {% endif %}
+                </div>
+                {% if lesson.content %}
+                <p class="text-muted mt-1 mb-0 ms-4">{{ lesson.content|truncatewords:10 }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-muted">Hozircha darslar yo'q</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-3">
+                    {% if course.price == 0 %}Bepul{% else %}{{ course.price }} so'm{% endif %}
+                </h3>
+                <p><i class="fas fa-user me-2"></i> O'qituvchi: <strong>{{ course.instructor }}</strong></p>
+                <p><i class="fas fa-book me-2"></i> Darslar soni: <strong>{{ lessons.count }}</strong></p>
+                <hr>
+                {% if user.is_authenticated %}
+                    {% if is_enrolled %}
+                    <div class="alert alert-success text-center">
+                        <i class="fas fa-check-circle"></i> Siz bu kursga yozilgansiz!
+                    </div>
+                    <a href="/courses/" class="btn btn-outline-success w-100">
+                        <i class="fas fa-list"></i> Boshqa kurslar
+                    </a>
+                    {% else %}
+                    <a href="/courses/{{ course.pk }}/enroll/" class="btn btn-warning btn-lg w-100">
+                        <i class="fas fa-graduation-cap"></i> Kursga yozilish
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="/login/" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-sign-in-alt"></i> Kirish kerak
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
