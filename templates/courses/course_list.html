@@ -6,6 +6,31 @@
 
 <h2 class="mb-4">🎓 Barcha kurslar</h2>
 
+<!-- Qidiruv -->
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <form method="GET">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control form-control-lg"
+                       placeholder="Kurs qidiring..."
+                       value="{{ query|default:'' }}">
+                <button type="submit" class="btn btn-warning btn-lg">
+                    <i class="fas fa-search"></i> Qidirish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if query %}
+<div class="mb-3">
+    <p class="text-muted">
+        "<strong>{{ query }}</strong>" bo'yicha qidiruv natijalari:
+        <strong>{{ courses|length }}</strong> ta kurs topildi
+    </p>
+</div>
+{% endif %}
+
 <!-- Kategoriya filtri -->
 <div class="mb-4">
     <a href="/courses/" class="btn btn-outline-secondary me-2">Barchasi</a>

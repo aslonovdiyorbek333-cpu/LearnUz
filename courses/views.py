@@ -19,14 +19,17 @@ def course_list(request):
     courses = Course.objects.filter(is_published=True)
     categories = Category.objects.all()
     category_id = request.GET.get('category')
+    query = request.GET.get('q')
     if category_id:
         courses = courses.filter(category_id=category_id)
+    if query:
+        courses = courses.filter(title__icontains=query) | courses.filter(description__icontains=query)
     context = {
         'courses': courses,
         'categories': categories,
+        'query': query,
     }
     return render(request, 'courses/course_list.html', context)
-
 
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)

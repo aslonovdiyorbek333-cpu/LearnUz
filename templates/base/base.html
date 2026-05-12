@@ -34,6 +34,17 @@
                     <a class="nav-link" href="/courses/">Kurslar</a>
                 </li>
             </ul>
+            <!-- Navbar qidiruv -->
+            <form class="d-flex me-3" method="GET" action="/courses/">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control"
+                           placeholder="Kurs qidiring..."
+                           value="{{ request.GET.q }}">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
