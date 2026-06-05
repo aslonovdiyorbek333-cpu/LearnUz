@@ -3,10 +3,12 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from courses.models import Course, Review
 import re
 
 
@@ -46,7 +48,6 @@ def register(request):
                 'email': email,
             })
 
-        # Foydalanuvchi yaratish — faolsizlangan holda
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -54,7 +55,6 @@ def register(request):
             is_active=False
         )
 
-        # Tasdiqlash emaili yuborish
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         activation_link = f"http://127.0.0.1:8000/activate/{uid}/{token}/"
@@ -115,5 +115,37 @@ def logout_view(request):
     return redirect('home')
 
 
+@login_required
 def profile(request):
-    return render(request, 'users/profile.html')
+    from users.models import Profile
+    # Profile yo'q bo'lsa avtomatik yaratish
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+    enrollments = request.user.enrollment_set.all()
+    total_courses = enrollments.count()
+    completed_courses = enrollments.filter(is_completed=True).count()
+    reviews = Review.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        bio = request.POST.get('bio', '')
+        phone = request.POST.get('phone', '')
+        avatar = request.FILES.get('avatar')
+        profile.bio = bio
+        profile.phone = phone
+        if avatar:
+            profile.avatar = avatar
+        profile.save()
+        messages.success(request, 'Profil muvaffaqiyatli yangilandi!')
+        return redirect('profile')
+
+    context = {
+        'profile': profile,
+        'enrollments': enrollments,
+        'total_courses': total_courses,
+        'completed_courses': completed_courses,
+        'reviews': reviews,
+    }
+    return render(request, 'users/profile.html', context)

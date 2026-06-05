@@ -132,3 +132,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'aslonovdiyorbek333@gmail.com'  # Gmail manzilingiz
 EMAIL_HOST_PASSWORD = 'aejs ofoo rhsg zqjr'  # Gmail App Password
 DEFAULT_FROM_EMAIL = 'LearnUz <aslonovdiyorbek333@gmail.com>'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
