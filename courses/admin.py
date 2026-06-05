@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Course, Lesson
+from .models import Category, Course, Lesson, Review
 
 
 @admin.register(Category)
@@ -18,3 +18,9 @@ class CourseAdmin(admin.ModelAdmin):
 class LessonAdmin(admin.ModelAdmin):
     list_display = ['title', 'course', 'order']
     list_filter = ['course']
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['user', 'course', 'rating', 'created_at']
+    list_filter = ['rating']

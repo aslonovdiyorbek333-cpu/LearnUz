@@ -51,6 +51,9 @@
                 <h3 class="text-success mb-3">
                     {% if course.price == 0 %}Bepul{% else %}{{ course.price }} so'm{% endif %}
                 </h3>
+                {% if avg_rating %}
+                <p><i class="fas fa-star text-warning"></i> {{ avg_rating|floatformat:1 }} / 5.0 ({{ reviews|length }} sharh)</p>
+                {% endif %}
                 <p><i class="fas fa-user me-2"></i> O'qituvchi: <strong>{{ course.instructor }}</strong></p>
                 <p><i class="fas fa-book me-2"></i> Darslar soni: <strong>{{ lessons.count }}</strong></p>
                 <hr>
@@ -74,6 +77,76 @@
                 {% endif %}
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Sharhlar -->
+<div class="row mt-5">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <h3>⭐ O'rtacha reyting</h3>
+                {% if avg_rating %}
+                <h1 class="text-warning">{{ avg_rating|floatformat:1 }}</h1>
+                <p class="text-muted">{{ reviews|length }} ta sharh</p>
+                {% else %}
+                <p class="text-muted">Hozircha sharhlar yo'q</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.is_authenticated and is_enrolled and not user_review %}
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <h4>✍️ Sharh qoldiring</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Reyting</label>
+                        <select name="rating" class="form-select">
+                            <option value="5">⭐⭐⭐⭐⭐ — Ajoyib</option>
+                            <option value="4">⭐⭐⭐⭐ — Yaxshi</option>
+                            <option value="3">⭐⭐⭐ — O'rtacha</option>
+                            <option value="2">⭐⭐ — Yomon</option>
+                            <option value="1">⭐ — Juda yomon</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Fikringiz</label>
+                        <textarea name="comment" class="form-control" rows="4"
+                                  placeholder="Kurs haqida fikringizni yozing..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="fas fa-star"></i> Sharh qoldirish
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% elif user_review %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Siz allaqachon sharh qoldirdingiz!
+        </div>
+        {% endif %}
+
+        <h4 class="mb-3">💬 Sharhlar</h4>
+        {% for review in reviews %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h6><i class="fas fa-user-circle text-warning"></i> {{ review.user.username }}</h6>
+                    <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                </div>
+                <div class="text-warning mb-2">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}⭐{% endif %}
+                    {% endfor %}
+                </div>
+                <p class="mb-0">{{ review.comment }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">Hozircha sharhlar yo'q. Birinchi sharh qoldiring!</p>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

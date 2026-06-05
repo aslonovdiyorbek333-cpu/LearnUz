@@ -46,3 +46,28 @@ class Lesson(models.Model):
         verbose_name = 'Dars'
         verbose_name_plural = 'Darslar'
         ordering = ['order']
+
+
+
+
+
+
+
+
+
+
+class Review(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.course.title} - {self.rating}⭐"
+
+    class Meta:
+        verbose_name = 'Sharh'
+        verbose_name_plural = 'Sharhlar'
+        unique_together = ('course', 'user')
+        ordering = ['-created_at']
