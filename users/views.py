@@ -5,10 +5,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
 from courses.models import Course, Review
+from users.models import Profile, EmailVerification
 import re
 
 
@@ -29,8 +27,6 @@ def register(request):
             errors.append('Bu username allaqachon mavjud!')
         if not email:
             errors.append('Email majburiy!')
-        if email and User.objects.filter(email=email).exists():
-            errors.append('Bu email allaqachon ro\'yxatdan o\'tgan!')
         if len(password1) < 8:
             errors.append('Parol kamida 8 ta belgi bo\'lishi kerak!')
         if not re.search(r'[A-Z]', password1):
@@ -48,47 +44,75 @@ def register(request):
                 'email': email,
             })
 
-        user = User.objects.create_user(
-            username=username,
+        # 6 xonali kod yaratish
+        code = EmailVerification.generate_code()
+
+        # Oldingi kodlarni o'chirish
+        EmailVerification.objects.filter(email=email).delete()
+
+        # Yangi kod saqlash
+        EmailVerification.objects.create(
             email=email,
-            password=password1,
-            is_active=False
+            code=code
         )
 
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        activation_link = f"http://127.0.0.1:8000/activate/{uid}/{token}/"
+        # Session ga ma'lumotlarni saqlash
+        request.session['register_username'] = username
+        request.session['register_email'] = email
+        request.session['register_password'] = password1
 
+        # Email yuborish
         send_mail(
-            subject='LearnUz — Email tasdiqlash',
-            message=f'Salom {username}!\n\nEmailingizni tasdiqlash uchun quyidagi havolani bosing:\n\n{activation_link}\n\nHavola 24 soat davomida amal qiladi.',
+            subject='LearnUz — Email tasdiqlash kodi',
+            message=f'Salom {username}!\n\nLearnUz ga ro\'yxatdan o\'tish uchun tasdiqlash kodingiz:\n\n🔐 {code}\n\nKod 10 daqiqa davomida amal qiladi.\n\nAgar siz ro\'yxatdan o\'tmagan bo\'lsangiz, bu xabarni e\'tiborsiz qoldiring.',
             from_email='aslonovdiyorbek333@gmail.com',
             recipient_list=[email],
             fail_silently=False,
         )
 
-        messages.success(request, f'{email} manziliga tasdiqlash xati yuborildi! Emailingizni tekshiring.')
-        return redirect('login')
+        messages.success(request, f'✅ {email} manziliga 6 xonali kod yuborildi! Emailingizni tekshiring.')
+        return redirect('verify_email')
 
     return render(request, 'users/register.html')
 
 
-def activate(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
+def verify_email(request):
+    email = request.session.get('register_email')
+    username = request.session.get('register_username')
 
-    if user and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        login(request, user)
-        messages.success(request, 'Email tasdiqlandi! Xush kelibsiz!')
-        return redirect('home')
-    else:
-        messages.error(request, 'Havola yaroqsiz yoki muddati o\'tgan!')
+    if not email:
         return redirect('register')
+
+    if request.method == 'POST':
+        code = request.POST.get('code')
+
+        try:
+            verification = EmailVerification.objects.get(email=email, code=code, is_verified=False)
+            verification.is_verified = True
+            verification.save()
+
+            # Foydalanuvchi yaratish
+            password = request.session.get('register_password')
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                is_active=True
+            )
+
+            # Sessionni tozalash
+            del request.session['register_username']
+            del request.session['register_email']
+            del request.session['register_password']
+
+            login(request, user)
+            messages.success(request, f'🎉 Xush kelibsiz, {username}! Email muvaffaqiyatli tasdiqlandi!')
+            return redirect('home')
+
+        except EmailVerification.DoesNotExist:
+            messages.error(request, '❌ Kod xato! Qaytadan tekshiring.')
+
+    return render(request, 'users/verify_email.html', {'email': email})
 
 
 def login_view(request):
@@ -96,9 +120,6 @@ def login_view(request):
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            if not user.is_active:
-                messages.error(request, 'Emailingizni tasdiqlamadingiz! Pochta qutingizni tekshiring.')
-                return render(request, 'users/login.html', {'form': form})
             login(request, user)
             messages.success(request, 'Muvaffaqiyatli kirdingiz!')
             return redirect('home')
@@ -117,8 +138,6 @@ def logout_view(request):
 
 @login_required
 def profile(request):
-    from users.models import Profile
-    # Profile yo'q bo'lsa avtomatik yaratish
     try:
         profile = request.user.profile
     except Profile.DoesNotExist:

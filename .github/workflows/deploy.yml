@@ -1,0 +1,22 @@
+name: Deploy to PythonAnywhere via SSH
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.PA_SSH_PRIVATE_KEY }}
+      - name: Run remote deploy commands
+        env:
+          PA_USER: ${{ secrets.PA_USERNAME }}
+          REPO_PATH: ${{ secrets.PA_REPO_PATH }}
+          VENV_PATH: ${{ secrets.PA_VENV_PATH }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $PA_USER@ssh.pythonanywhere.com "cd $REPO_PATH && source $VENV_PATH/bin/activate && git pull origin main && pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput && touch /var/www/${PA_USER}_pythonanywhere_com_wsgi.py"

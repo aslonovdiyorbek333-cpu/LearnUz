@@ -1,0 +1,57 @@
+{% extends 'base/base.html' %}
+{% block title %}Email tasdiqlash - LearnUz{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow border-0">
+            <div class="card-body p-5">
+
+                <!-- Icon -->
+                <div class="text-center mb-4">
+                    <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-envelope fa-2x text-dark"></i>
+                    </div>
+                </div>
+
+                <h3 class="text-center fw-bold mb-2">Emailni tasdiqlang</h3>
+                <p class="text-center text-muted mb-4">
+                    <strong>{{ email }}</strong> manziliga<br>
+                    6 xonali tasdiqlash kodi yuborildi!
+                </p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Tasdiqlash kodi</label>
+                        <input type="text"
+                               name="code"
+                               class="form-control form-control-lg text-center fw-bold"
+                               placeholder="_ _ _ _ _ _"
+                               maxlength="6"
+                               style="font-size: 2rem; letter-spacing: 10px;"
+                               autofocus>
+                        <small class="text-muted">Emailingizga kelgan 6 xonali kodni kiriting</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 btn-lg fw-bold">
+                        <i class="fas fa-check-circle me-2"></i> Tasdiqlash
+                    </button>
+                </form>
+
+                <hr>
+
+                <div class="text-center">
+                    <p class="text-muted small mb-2">Kod kelmadimi?</p>
+                    <a href="/register/" class="text-warning fw-bold">
+                        <i class="fas fa-redo me-1"></i> Qaytadan ro'yxatdan o'tish
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

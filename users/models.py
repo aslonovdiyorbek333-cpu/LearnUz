@@ -3,6 +3,26 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from courses.models import Course
+import random
+import string
+
+
+class EmailVerification(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.email} - {self.code}"
+
+    @staticmethod
+    def generate_code():
+        return ''.join(random.choices(string.digits, k=6))
+
+    class Meta:
+        verbose_name = 'Email tasdiqlash'
+        verbose_name_plural = 'Email tasdiqlashlar'
 
 
 class Profile(models.Model):
